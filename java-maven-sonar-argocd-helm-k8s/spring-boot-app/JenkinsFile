@@ -29,6 +29,12 @@ pipeline {
         }
       }
     }
+    stage('Code Coverage') {
+            steps {
+                echo "Generating code coverage report..."
+                sh 'mvn jacoco:report'
+            }
+        }
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "19990430/ultimate-cicd:${BUILD_NUMBER}"
