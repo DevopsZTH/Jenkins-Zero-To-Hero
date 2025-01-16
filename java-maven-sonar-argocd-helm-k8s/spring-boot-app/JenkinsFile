@@ -29,13 +29,44 @@ pipeline {
         }
       }
     }
-    stage('Security Scan') {
+    stage('Publish Reports') {
             steps {
-                echo "Running OWASP Dependency-Check..."
-                sh "$/opt/dependency-check/dependency-check.sh --scan . --format HTML --out dependency-check-report"
-                archiveArtifacts artifacts: 'dependency-check-report/*.html', fingerprint: true
+                echo "Publishing all reports..."
+                publishHTML([
+                    allowMissing: false, 
+                    alwaysLinkToLastBuild: true, 
+                    keepAll: true, 
+                    reportDir: 'target/site/jacoco', 
+                    reportFiles: 'index.html', 
+                    reportName: 'Code Coverage Report'
+                ])
+                publishHTML([
+                    allowMissing: false, 
+                    alwaysLinkToLastBuild: true, 
+                    keepAll: true, 
+                    reportDir: 'dependency-check-report', 
+                    reportFiles: 'dependency-check-report.html', 
+                    reportName: 'Dependency-Check Report'
+                ])
             }
         }
+    }
+    
+    post {
+        success {
+            echo "Build succeeded!"
+            mail to: 'team@example.com',
+                 subject: "Jenkins Build Success - ${currentBuild.fullDisplayName}",
+                 body: "Good news! The build was successful. View it here: ${env.BUILD_URL}"
+        }
+        
+        failure {
+            echo "Build failed!"
+            mail to: 'team@example.com',
+                 subject: "Jenkins Build Failed - ${currentBuild.fullDisplayName}",
+                 body: "Unfortunately, the build failed. Check the logs: ${env.BUILD_URL}"
+        }
+    }
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "19990430/ultimate-cicd:${BUILD_NUMBER}"
