@@ -29,10 +29,11 @@ pipeline {
         }
       }
     }
-    stage('Code Coverage') {
+    stage('Security Scan') {
             steps {
-                echo "Generating code coverage report..."
-                sh 'mvn jacoco:report'
+                echo "Running OWASP Dependency-Check..."
+                sh "$DEPENDENCY_CHECK_PATH/dependency-check.sh --scan . --format HTML --out dependency-check-report"
+                archiveArtifacts artifacts: 'dependency-check-report/*.html', fingerprint: true
             }
         }
     stage('Build and Push Docker Image') {
