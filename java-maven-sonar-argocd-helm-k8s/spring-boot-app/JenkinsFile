@@ -35,6 +35,13 @@ pipeline {
                 sh 'mvn jacoco:report'
             }
         }
+   stage('Security Scan') {
+            steps {
+                echo "Running OWASP Dependency-Check..."
+                sh "$DEPENDENCY_CHECK_PATH/dependency-check.sh --scan . --format HTML --out dependency-check-report"
+                archiveArtifacts artifacts: 'dependency-check-report/*.html', fingerprint: true
+            }
+        }
     stage('Build and Push Docker Image') {
       environment {
         DOCKER_IMAGE = "19990430/ultimate-cicd:${BUILD_NUMBER}"
